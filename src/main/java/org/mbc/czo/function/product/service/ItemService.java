@@ -7,6 +7,7 @@ import org.mbc.czo.function.product.domain.ItemImg;
 import org.mbc.czo.function.product.dto.ItemFormDto;
 import org.mbc.czo.function.product.dto.ItemImgDto;
 import org.mbc.czo.function.product.dto.ItemSearchDto;
+import org.mbc.czo.function.product.dto.MainItemDto;
 import org.mbc.czo.function.product.repository.ItemImgRepository;
 import org.mbc.czo.function.product.repository.ItemRepository;
 import org.springframework.data.domain.Page;
@@ -60,7 +61,7 @@ public class ItemService {
         return item.getId();
     }
 
-    // 등록된 상품을 불러오는 메소드
+    // 등록된 상품을 불러오는 메소드 (상세페이지)
     @Transactional(readOnly = true) // 데이터 일관성 보장, 불필요한 update sql 생성 방지 = 트랜잭션 안에서 조회하면 같은 트랜잭션 내에선 일관된 데이터를 볼 수 있음
     public ItemFormDto getItemDtl(Long itemId){
         List<ItemImg> itemImgList = itemImgRepository.findByItemIdOrderByIdAsc(itemId); // 해당 상품 이미지를 조회
@@ -77,7 +78,23 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
-        // 상품 조회
-        return  itemRepository.getAdminItemPage(itemSearchDto, pageable);
+        // 상품 조회 (관리자용)
+        return itemRepository.getAdminItemPage(itemSearchDto, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
+        // 메인페이지 상품 조회 (사용자)
+        return itemRepository.getMainItemPage(itemSearchDto, pageable);
+    }
+
+    // 상품 삭제 메서드
+    public  void deleteItem(List<Long> itemIds) {
+        for(Long itemId : itemIds) {
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new EntityNotFoundException("상품이 존재하지 않습니다. ID =" + itemId));
+
+            itemRepository.delete(item);
+        }
     }
 }

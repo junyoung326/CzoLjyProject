@@ -2,9 +2,7 @@ package org.mbc.czo.function.product.domain;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.mbc.czo.function.common.entity.BaseEntity;
 import org.mbc.czo.function.product.constant.ItemSellStatus;
 import org.mbc.czo.function.product.dto.ItemFormDto;
