@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic.html}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Re:Life</title>
+
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header-container {
+            border-bottom: 1px solid #c2e0e0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 50px;
+            background-color: #fff;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #008080;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #008080;
+            font-weight: bold;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #008080;
+            border-radius: 5px;
+        }
+
+        .Search-button {
+            padding: 10px 20px;
+            background-color: #008080;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .login-button {
+            padding: 10px 20px;
+            background-color: #008080;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* * 이 부분에 Thymeleaf 레이아웃을 위한 fragment를 정의합니다.
+         * 다른 페이지가 이 레이아웃을 확장할 때, content가 이 자리에 들어갑니다.
+         */
+        .content-placeholder {
+            min-height: 500px;
+            padding: 20px 50px;
+        }
+    </style>
+</head>
+
+
+
+
+<body>
+
+<div class="header-container">
+    <header class="header">
+        <div class="logo">
+            <img src="/images/logo.png" alt="Re:Life Logo">
+            <span class="logo-text">Re:Life</span>
+        </div>.
+        <nav class="nav-menu">
+            <a href="#">HOME</a>
+            <a href="#">SHOP</a>
+            <a href="#">CART</a>
+            <a href="#">MYPAGE</a>
+        </nav>
+        <div class="user-actions">
+            <div class="search-container">
+                <input type="text" placeholder="검색" aria-label="Search">
+                <button class="Search-button">Search</button>
+            </div>
+            <button class="login-button">Login</button>
+        </div>
+    </header>
+
+    <main class="content-placeholder" layout:fragment="content">
+        <!-- 자식 템플릿이 여기를 덮어씀 -->
+        <p>기본 컨텐츠</p>
+    </main>
+
+    <footer>
+        <p>푸터</p>
+    </footer>
+</div>
+</body>
+</html>

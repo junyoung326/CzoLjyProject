@@ -1,4 +1,4 @@
-package org.mbc.board;
+package org.mbc.czo;
 
 import lombok.Cleanup;
 import lombok.extern.log4j.Log4j2;

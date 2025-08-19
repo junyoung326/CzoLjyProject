@@ -53,6 +53,10 @@ public class ItemController {
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "product/itemForm";
         }
+        for (int i = 0; i < itemImgFileList.size(); i++) {
+            MultipartFile file = itemImgFileList.get(i);
+            System.out.println("파일 " + i + " : " + file.getOriginalFilename() + ", size=" + file.getSize());
+        }
         return "redirect:/"; // 상품이 정상적으로 등록되었다면 메인 페이지로 이동
     }
 

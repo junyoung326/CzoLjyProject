@@ -49,7 +49,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom { // ItemReposit
         return QItem.item.regTime.after(dateTime);
     }
 
-    private  BooleanExpression searchByLike(String searchBy, String searchQuery) { // 상품을 조회하도록 조건값을 반환
+    private BooleanExpression searchByLike(String searchBy, String searchQuery) { // 상품을 조회하도록 조건값을 반환
 
         if(StringUtils.equals("itemNm",searchBy)) {
             return QItem.item.itemNm.like("%" + searchQuery + "%"); // 앞뒤 어디에 있던 포함된 데이터 // %가 앞에 있으면 ~로 끝나는 데이터 뒤에 있으면 ~시작하는 데이터
@@ -78,7 +78,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom { // ItemReposit
         return new PageImpl<>(content, pageable, total); // page 클래스의 구현체인 pageimpl 객체로 반환
     }
 
-    private BooleanExpression itemNmLike(String searchQuery) { // 검새어가 널이 아니면  상품명에 해당 검색어가 포함되는 상품을 조회하는 조건을 반환
+    private BooleanExpression itemNmLike(String searchQuery) { // 검색어가 널이 아니면  상품명에 해당 검색어가 포함되는 상품을 조회하는 조건을 반환
         return StringUtils.isEmpty(searchQuery) ? null : QItem.item.itemNm.like("%" + searchQuery + "%");
     }
 
