@@ -53,15 +53,11 @@ public class ItemController {
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "product/itemForm";
         }
-        for (int i = 0; i < itemImgFileList.size(); i++) {
-            MultipartFile file = itemImgFileList.get(i);
-            System.out.println("파일 " + i + " : " + file.getOriginalFilename() + ", size=" + file.getSize());
-        }
         return "redirect:/"; // 상품이 정상적으로 등록되었다면 메인 페이지로 이동
     }
 
     // 상품 수정 관련
-    @GetMapping(value = "admin/item/{itemId}") // {itemId}은 url 일부를 변수로 받아 메서드 파라미터로 넘긴다.
+    @GetMapping(value = "/admin/item/{itemId}") // {itemId}은 url 일부를 변수로 받아 메서드 파라미터로 넘긴다.
     public String itemDtl(@PathVariable("itemId") Long itemId, Model model) {
 
         try{
@@ -73,6 +69,25 @@ public class ItemController {
             return "product/itemForm";
         }
         return "product/itemForm"; // 이건 try가 정상적으로 끝났을 때만 실행
+    }
+
+    @PostMapping(value = "/admin/item/{itemId}")
+    public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult, @RequestParam("itemImgFile") List<MultipartFile> itemImgFileList, Model model, @PathVariable String itemId){
+
+        if (bindingResult.hasErrors()) {
+            return "product/itemForm";
+        }
+        if(itemImgFileList.get(0).isEmpty() && itemFormDto.getId() == null){
+            model.addAttribute("errorMessage", "첫번째 상품 이미지는 필수 입력 값 입니다.");
+            return "product/itemForm";
+        }
+        try {
+            itemService.updateItem(itemFormDto, itemImgFileList);
+        } catch (Exception e){
+            model.addAttribute("errorMessage", "상품 수정 중 에러가 발생하였습니다.");
+            return "product/itemForm";
+        }
+        return "redirect:/";
     }
 
     // 상품 조회 관련 (관리자)

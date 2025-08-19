@@ -125,8 +125,7 @@
         <div th:unless="${#strings.isEmpty(itemFormDto.id)}" style="text-align: center">
             <button th:formaction="@{'/admin/item/' + ${itemFormDto.id} }" type="submit" class="btn btn-primary">수정</button>
         </div>
-        <!--csrf 토큰에 대한 비활성화 + 오류로 인해 임시 주석 처리함-->
-        <!--<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">-->
+<!--        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">-->
 
     </form>
 

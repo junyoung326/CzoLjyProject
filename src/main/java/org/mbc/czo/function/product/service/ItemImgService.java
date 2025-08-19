@@ -45,26 +45,26 @@ public class ItemImgService {
 
     // 상품 이미지 수정
     public void updateItemImg(Long itemImgId, MultipartFile itemImgFile) throws Exception{
-        if(!itemImgFile.isEmpty()){ // 이미지가 존재하면! 확인대상이 업로드된 파일
-            ItemImg savedItemImg = itemImgRepository.findById(itemImgId).orElseThrow(EntityNotFoundException::new);
-            // itemImgRepository.findById()는 JPA Repository의 메서드입니다.
-            // 이 메서드는 DB에서 엔티티를 조회하면서, 조회된 엔티티를 영속 상태로 관리. 즉, savedItemImg는 현재 영속 상태
+         if(!itemImgFile.isEmpty()){ // 이미지가 존재하면! 확인대상이 업로드된 파일
+             ItemImg savedItemImg = itemImgRepository.findById(itemImgId).orElseThrow(EntityNotFoundException::new);
+        // itemImgRepository.findById()는 JPA Repository의 메서드입니다.
+        // 이 메서드는 DB에서 엔티티를 조회하면서, 조회된 엔티티를 영속 상태로 관리. 즉, savedItemImg는 현재 영속 상태
 
-            // 기존 이미지 파일 삭제
-            if (!StringUtils.isEmpty(savedItemImg.getImgName())) { // 기존에 등록된 상품 이미지 파일이 있을 경우 해당 파일 삭제 : 확인대상이 DB에 저장된 이미지 이름(String)
-                fileService.deleteFile(itemImgLocation + "/" + savedItemImg.getImgName());
+         // 기존 이미지 파일 삭제
+         if (!StringUtils.isEmpty(savedItemImg.getImgName())) { // 기존에 등록된 상품 이미지 파일이 있을 경우 해당 파일 삭제 : 확인대상이 DB에 저장된 이미지 이름(String)
+            fileService.deleteFile(itemImgLocation + "/" + savedItemImg.getImgName());
 
-            }
+         }
 
-            String oriImgName = itemImgFile.getOriginalFilename();
-            String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes()); // 업데이트한 상품 이미지 파일을 업로드
-            String imgUrl = "/images/item/" + imgName; // 실제 파일은 src/main/resources/static/images/item/에 있어야 브라우저가 볼 수 있음
-            savedItemImg.updateItemImg(oriImgName, imgName, imgUrl);
-            // 변경된 상품 이미지 정보를 세팅
-            // 중요! 상품 등록 때처럼 itemImgRepository.save()로직을 호출하지 않음. savedItemImg 엔티티는 현재 영속 상태이므로 데이터 변경만으로
-            // 변경 감지 기능이 동작해 트랜잭션이 끝날 때 update 쿼리가 실행됨
+         String oriImgName = itemImgFile.getOriginalFilename();
+         String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes()); // 업데이트한 상품 이미지 파일을 업로드
+         String imgUrl = "/images/item/" + imgName; // 실제 파일은 src/main/resources/static/images/item/에 있어야 브라우저가 볼 수 있음
+         savedItemImg.updateItemImg(oriImgName, imgName, imgUrl);
+         // 변경된 상품 이미지 정보를 세팅
+         // 중요! 상품 등록 때처럼 itemImgRepository.save()로직을 호출하지 않음. savedItemImg 엔티티는 현재 영속 상태이므로 데이터 변경만으로
+         // 변경 감지 기능이 동작해 트랜잭션이 끝날 때 update 쿼리가 실행됨
 
-        }
+         }
     }
 
 }
