@@ -90,11 +90,11 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom { // ItemReposit
         QueryResults<MainItemDto> results = queryFactory
                 .select(
                         new QMainItemDto( // QMainitemDto의 생성자 반환 할 값들을 넣어준다. @QueryProjection사용하면 DTO로 바로 조회가 가능 하다 엔티티 조회 후 DTO로 변환하는 과정을 줄일 수 있다.
-                                item.id,
-                                item.itemNm,
-                                item.itemDetail,
-                                itemImg.imgUrl,
-                                item.price)
+                        item.id,
+                        item.itemNm,
+                        item.itemDetail,
+                        itemImg.imgUrl,
+                        item.price)
                 )
                 .from(itemImg)
                 .join(itemImg.item,item)

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.mbc.czo.function.product.domain.Item;
 import org.mbc.czo.function.product.dto.ItemFormDto;
 import org.mbc.czo.function.product.dto.ItemSearchDto;
+import org.mbc.czo.function.product.repository.ItemRepository;
 import org.mbc.czo.function.product.service.ItemService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ import java.util.Optional;
 public class ItemController {
     // 관리자 상품 컨트롤러 !!!!!!!!
     private final ItemService itemService;
+    private final ItemRepository itemRepository;
 
     // 상품 등록 관련
     @GetMapping(value = "/admin/item/new")
@@ -72,7 +74,7 @@ public class ItemController {
     }
 
     @PostMapping(value = "/admin/item/{itemId}")
-    public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult, @RequestParam("itemImgFile") List<MultipartFile> itemImgFileList, Model model, @PathVariable String itemId){
+    public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult, @RequestParam("itemImgFile") List<MultipartFile> itemImgFileList, Model model){
 
         if (bindingResult.hasErrors()) {
             return "product/itemForm";
@@ -92,10 +94,9 @@ public class ItemController {
 
     // 상품 조회 관련 (관리자)
     @GetMapping(value = {"/admin/items", "/admin/items/{page}"}) // value에 상품 관리 화면 진입 시 URL에 페이지 번호가 없는 경우와 페이지 번호가 있는 경우 2가지를 매핑
-    public String itemManage(ItemSearchDto itemSearchDto, @PathVariable("page") Optional<Integer> page, Model model, Pageable pageable) {
-        Pageable pageable1 = PageRequest.of(page.isPresent() ? page.get() : 0,3); // url 경로에 페이지 번호가 있으면 해당 페이지를 조회 하도록 세팅, 없으면 0페이지를 조회하도록함
-        Page<Item> items =
-                itemService.getAdminItemPage(itemSearchDto, pageable); // 조회 조건과 페이징 정보를 파라미터로 넘겨서 Page<item>객체를 반환 받음
+    public String itemManage(ItemSearchDto itemSearchDto, @PathVariable("page") Optional<Integer> page, Model model) {
+        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0,3); // url 경로에 페이지 번호가 있으면 해당 페이지를 조회 하도록 세팅, 없으면 0페이지를 조회하도록함
+        Page<Item> items = itemService.getAdminItemPage(itemSearchDto, pageable); // 조회 조건과 페이징 정보를 파라미터로 넘겨서 Page<item>객체를 반환 받음
         model.addAttribute("items", items); // 조회한 상품 데이터 및 페이징 정보를 뷰에 전달
         model.addAttribute("itemSearchDto", itemSearchDto); // 페이지 전환 시 기존 검색 조건을 유지한 채 이동할 수 있도록 뷰에 다시 전달
         model.addAttribute("maxPage", 5); //  상품 관리 메뉴 하단에 보여줄 페이지 번호의 최대 개수. 5로 설정했으므로 최대 5개의 이동할 페이지 번호만 보여준다.
@@ -110,6 +111,21 @@ public class ItemController {
         return "product/itemDtl";
     }
 
+    // 페이지 음수 방지
+    @GetMapping("/items")
+    public String main(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       Model model) {
+
+        if (page < 0) page = 0; // 음수 페이지 방어
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Item> items = itemRepository.findAll(pageRequest);
+
+        model.addAttribute("items", items);
+        return "main";
+    }
+
     // 상품 삭제
     @DeleteMapping("/admin/items")
     public ResponseEntity<String> deleteItem(@RequestParam List<Long> itemIds) {
@@ -122,7 +138,6 @@ public class ItemController {
         } catch (Exception e) {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 삭제 중 오류 발생");
         }
-
 
     }
 }
