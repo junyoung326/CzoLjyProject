@@ -88,13 +88,18 @@ public class ItemService {
         return itemRepository.getMainItemPage(itemSearchDto, pageable);
     }
 
-    // 상품 삭제 메서드
-    public  void deleteItem(List<Long> itemIds) {
-        for(Long itemId : itemIds) {
-            Item item = itemRepository.findById(itemId)
-                    .orElseThrow(() -> new EntityNotFoundException("상품이 존재하지 않습니다. ID =" + itemId));
 
-            itemRepository.delete(item);
+    @Transactional
+    public void deleteItem(List<Long> itemIds) {
+        for (Long itemId : itemIds) {
+            // 1. 상품 이미지 먼저 삭제
+            itemImgRepository.deleteByItemId(itemId);
+
+            // 2. 다른 연관 데이터도 삭제 (필요한 경우)
+            // cartItemRepository.deleteByItemId(itemId);
+
+            // 3. 마지막에 상품 삭제
+            itemRepository.deleteById(itemId);
         }
     }
 }

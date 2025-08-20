@@ -136,7 +136,7 @@ public class ItemController {
         } catch (EntityNotFoundException e) {
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제 할 상품이 없습니다.");
         } catch (Exception e) {
-            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 삭제 중 오류 발생");
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("상품 삭제 중 오류 발생: " + e.getMessage());
         }
 
     }
