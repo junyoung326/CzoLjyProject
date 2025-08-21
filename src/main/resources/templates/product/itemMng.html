@@ -3,105 +3,197 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 
-<!-- 여기에 CSRF 메타 태그 추가 -->
+<!-- CSRF 메타 태그 추가 -->
 <meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
 <!-- 사용자 스크립트 추가 -->
 <th:block layout:fragment="script">
   <script th:inline="javascript">
-
-    // 삭제 버튼 상태 업데이트 함수 먼저 정의
-    function updateDeleteButtonState() {
-      var checkedCount = $(".item-checkbox:checked").length;
-      if (checkedCount > 0) {
-        $("#deleteBtn").prop("disabled", false).removeClass("btn-secondary").addClass("btn-danger");
-      } else {
-        $("#deleteBtn").prop("disabled", true).removeClass("btn-danger").addClass("btn-secondary");
-      }
+    // jQuery가 로드되었는지 확인하고 없으면 로드
+    if (typeof jQuery === 'undefined') {
+      var script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+      script.onload = function() {
+        initItemManagement();
+      };
+      document.head.appendChild(script);
+    } else {
+      $(document).ready(function() {
+        initItemManagement();
+      });
     }
 
-    // 전체 선택 체크박스 상태 업데이트
-    function updateSelectAllState() {
-      var totalCheckboxes = $(".item-checkbox").length;
-      var checkedCheckboxes = $(".item-checkbox:checked").length;
-
-      if (checkedCheckboxes === 0) {
-        $("#selectAll").prop("indeterminate", false).prop("checked", false);
-      } else if (checkedCheckboxes === totalCheckboxes) {
-        $("#selectAll").prop("indeterminate", false).prop("checked", true);
-      } else {
-        $("#selectAll").prop("indeterminate", true);
+    function initItemManagement() {
+      // 삭제 버튼 상태 업데이트 함수
+      function updateDeleteButtonState() {
+        var checkedCount = $(".item-checkbox:checked").length;
+        if (checkedCount > 0) {
+          $("#deleteBtn").prop("disabled", false).removeClass("btn-secondary").addClass("btn-danger");
+        } else {
+          $("#deleteBtn").prop("disabled", true).removeClass("btn-danger").addClass("btn-secondary");
+        }
       }
-    }
 
-    $(document).ready(function(){
+      // 전체 선택 체크박스 상태 업데이트
+      function updateSelectAllState() {
+        var totalCheckboxes = $(".item-checkbox").length;
+        var checkedCheckboxes = $(".item-checkbox:checked").length;
+
+        if (checkedCheckboxes === 0) {
+          $("#selectAll").prop("indeterminate", false).prop("checked", false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+          $("#selectAll").prop("indeterminate", false).prop("checked", true);
+        } else {
+          $("#selectAll").prop("indeterminate", true);
+        }
+      }
+
+      // 선택된 상품들 삭제
+      function deleteSelectedItems() {
+        var selectedItems = [];
+        $(".item-checkbox:checked").each(function() {
+          selectedItems.push($(this).val());
+        });
+
+        if (selectedItems.length === 0) {
+          alert("삭제할 상품을 선택해주세요.");
+          return;
+        }
+
+        if (!confirm("선택된 " + selectedItems.length + "개의 상품을 삭제하시겠습니까?")) {
+          return;
+        }
+
+        // CSRF 토큰 가져오기
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        if (!token) {
+          token = $("meta[name='_csrf'][content]").attr("content");
+        }
+        if (!header) {
+          header = $("meta[name='_csrf_header'][content]").attr("content");
+        }
+
+        var requestData = {
+          'itemIds': selectedItems
+        };
+
+        $.ajax({
+          url: "/admin/items",
+          type: "DELETE",
+          data: $.param(requestData, true),
+          contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+          beforeSend: function(xhr) {
+            if (header && token) {
+              xhr.setRequestHeader(header, token);
+            }
+          },
+          success: function(response) {
+            alert("선택된 상품이 성공적으로 삭제되었습니다.");
+            location.reload();
+          },
+          error: function(xhr, status, error) {
+            var errorMessage = "삭제 중 오류가 발생했습니다.";
+
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              errorMessage = xhr.responseText;
+            } else {
+              errorMessage = errorMessage + " (" + error + ")";
+            }
+
+            alert(errorMessage);
+          }
+        });
+      }
+
+      // 이벤트 바인딩
       // 검색 버튼 이벤트
-      $("#searchBtn").on("click",function(e) {
+      $(document).off("click", "#searchBtn").on("click", "#searchBtn", function(e) {
         e.preventDefault();
         page(0);
       });
 
-      // 전체 선택/해제 상품 삭제 부분
-      $("#selectAll").change(function() {
-        $(".item-checkbox").prop("checked", $(this).prop("checked"));
+      // 전체 선택/해제
+      $(document).off("change", "#selectAll").on("change", "#selectAll", function() {
+        var isChecked = $(this).prop("checked");
+        $(".item-checkbox").prop("checked", isChecked);
         updateDeleteButtonState();
       });
 
       // 개별 체크박스 상태 변경
-      $(document).on("change", ".item-checkbox", function() {
+      $(document).off("change", ".item-checkbox").on("change", ".item-checkbox", function() {
         updateDeleteButtonState();
         updateSelectAllState();
       });
 
       // 선택 항목 삭제 버튼 클릭
-      $("#deleteBtn").on("click", function() {
-        deleteSelectedItems();
+      $(document).off("click", "#deleteBtn").on("click", "#deleteBtn", function(e) {
+        e.preventDefault();
+        if (!$(this).prop("disabled")) {
+          deleteSelectedItems();
+        }
+      });
+
+      // 개별 상품 수정 버튼 클릭
+      $(document).off("click", ".edit-item-btn").on("click", ".edit-item-btn", function() {
+        var itemId = $(this).data("item-id");
+        location.href = "/admin/item/" + itemId;
+      });
+
+      // 개별 상품 삭제 버튼 클릭
+      $(document).off("click", ".delete-item-btn").on("click", ".delete-item-btn", function() {
+        var itemId = $(this).data("item-id");
+        var itemName = $(this).data("item-name");
+
+        if (!confirm("상품 '" + itemName + "'을(를) 삭제하시겠습니까?")) {
+          return;
+        }
+
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        if (!token) {
+          token = $("meta[name='_csrf'][content]").attr("content");
+        }
+        if (!header) {
+          header = $("meta[name='_csrf_header'][content]").attr("content");
+        }
+
+        $.ajax({
+          url: "/admin/items",
+          type: "DELETE",
+          data: "itemIds=" + itemId,
+          contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+          beforeSend: function(xhr) {
+            if (header && token) {
+              xhr.setRequestHeader(header, token);
+            }
+          },
+          success: function(response) {
+            alert("상품이 성공적으로 삭제되었습니다.");
+            location.reload();
+          },
+          error: function(xhr, status, error) {
+            var errorMessage = "삭제 중 오류가 발생했습니다.";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              errorMessage = xhr.responseText;
+            }
+            alert(errorMessage);
+          }
+        });
       });
 
       // 초기 삭제 버튼 상태 설정
       updateDeleteButtonState();
-    });
+    }
 
-    // 개별 상품 수정 버튼 클릭
-    $(document).on("click", ".edit-item-btn", function() {
-      var itemId = $(this).data("item-id");
-      location.href = "/admin/item/" + itemId;
-    });
-
-    // 개별 상품 삭제 버튼 클릭
-    $(document).on("click", ".delete-item-btn", function() {
-      var itemId = $(this).data("item-id");
-      var itemName = $(this).data("item-name");
-
-      if (!confirm("상품 '" + itemName + "'을(를) 삭제하시겠습니까?")) {
-        return;
-      }
-
-      var token = $("meta[name='_csrf']").attr("content");
-      var header = $("meta[name='_csrf_header']").attr("content");
-
-      $.ajax({
-        url: "/admin/items",
-        type: "DELETE",
-        data: { itemIds: [itemId] },
-        beforeSend: function(xhr) {
-          xhr.setRequestHeader(header, token);
-        },
-        success: function(response) {
-          alert(response);
-          location.reload();
-        },
-        error: function(xhr, status, error) {
-          if (xhr.responseText) {
-            alert(xhr.responseText);
-          } else {
-            alert("삭제 중 오류가 발생했습니다.");
-          }
-        }
-      });
-    });
-
+    // 페이지 이동 함수
     function page(page){
       var searchDateType = $("#searchDateType").val();
       var searchSellStatus = $("#searchSellStatus").val();
@@ -113,48 +205,6 @@
               + "&searchBy=" + searchBy
               + "&searchQuery=" + searchQuery;
     }
-
-    // 선택된 상품들 삭제
-    function deleteSelectedItems() {
-      var selectedItems = [];
-      $(".item-checkbox:checked").each(function() {
-        selectedItems.push($(this).val());
-      });
-
-      if (selectedItems.length === 0) {
-        alert("삭제할 상품을 선택해주세요.");
-        return;
-      }
-
-      if (!confirm("선택된 " + selectedItems.length + "개의 상품을 삭제하시겠습니까?")) {
-        return;
-      }
-
-      // CSRF 토큰 가져오기
-      var token = $("meta[name='_csrf']").attr("content");
-      var header = $("meta[name='_csrf_header']").attr("content");
-
-      $.ajax({
-        url: "/admin/items",
-        type: "DELETE",
-        data: { itemIds: selectedItems },
-        beforeSend: function(xhr) {
-          xhr.setRequestHeader(header, token);
-        },
-        success: function(response) {
-          alert(response);
-          location.reload(); // 페이지 새로고침
-        },
-        error: function(xhr, status, error) {
-          if (xhr.responseText) {
-            alert(xhr.responseText);
-          } else {
-            alert("삭제 중 오류가 발생했습니다.");
-          }
-        }
-      });
-    }
-
   </script>
 </th:block>
 
@@ -207,11 +257,28 @@
       background-color: #f8d7da;
       color: #721c24;
     }
+
+    #deleteBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #deleteBtn:not(:disabled) {
+      cursor: pointer;
+    }
+
+    .item-checkbox:checked {
+      outline: 2px solid red;
+    }
+
+    #deleteBtn.btn-danger {
+      background-color: #dc3545 !important;
+      border-color: #dc3545 !important;
+    }
   </style>
 </th:block>
 
 <div layout:fragment="content">
-
   <form th:action="@{'/admin/items/' + ${items.number}}" role="form" method="get" th:object="${items}">
     <!-- 삭제 제어 영역 -->
     <div class="delete-controls">
@@ -283,7 +350,6 @@
     <!-- 페이지네이션 -->
     <div th:with="start=${(items.number/maxPage)*maxPage + 1}, end=(${(items.totalPages == 0) ? 1 : (start + (maxPage - 1) < items.totalPages ? start + (maxPage - 1) : items.totalPages)})" >
       <ul class="pagination justify-content-center">
-
         <li class="page-item" th:classappend="${items.first}?'disabled'">
           <a th:onclick="'javascript:page(' + ${items.number - 1} + ')'" aria-label='Previous' class="page-link">
             <span aria-hidden='true'>Previous</span>
@@ -299,7 +365,6 @@
             <span aria-hidden='true'>Next</span>
           </a>
         </li>
-
       </ul>
     </div>
 
@@ -325,7 +390,5 @@
       <button id="searchBtn" type="submit" class="btn btn-primary">검색</button>
     </div>
   </form>
-
 </div>
-
 </html>

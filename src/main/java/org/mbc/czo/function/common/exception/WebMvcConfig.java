@@ -21,3 +21,28 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 
 }
+/*
+package org.mbc.czo.function.common.exception;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Value("${uploadPath}")
+    private String uploadPath; // @Value 어노테이션은 필드 선언 위에 있어야 함
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 업로드된 파일 접근을 위한 리소스 핸들러
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + uploadPath); // file: 프로토콜 추가 필요
+
+        // 정적 리소스 접근을 위한 리소스 핸들러 (주석 해제 권장)
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/", "classpath:/templates/");
+    }
+}*/
